@@ -34,14 +34,26 @@ This initiative addresses that gap by:
 ```
 clinic-procurement/
 │
-├── Clinics Procurement Data.csv                        # Main dataset — Odoo ERP export (43,799 records, 2018–2024)
-├── _SELECT_Purchase_Order_Info_..._202604291600.csv    # Supplementary query result export
+├── data/                                                        # Raw data exports from Odoo ERP
+│   ├── Clinics Procurement Data.csv                            # Main dataset (43,799 records, 2018–2024)
+│   └── _SELECT_Purchase_Order_Info_..._202604291600.csv        # Supplementary query result export
 │
-├── Query script.sql                                    # Original Odoo procurement query
-├── Updated Script.sql                                  # Revised query with consumables category grouping
+├── queries/                                                     # SQL extraction scripts
+│   ├── Query script.sql                                        # Original Odoo procurement query
+│   └── Updated Script.sql                                      # Revised query with consumables grouping
 │
-└── eda_analysis.py                                     # Exploratory data analysis script (generates 10 diagnostic figures)
+├── scripts/                                                     # Python analysis scripts
+│   └── eda_analysis.py                                         # EDA script — generates 10 diagnostic figures
+│
+├── reports/                                                     # Generated outputs (local only, not tracked)
+│   ├── figures/                                                 # EDA diagnostic figures (PDF)
+│   ├── eda_report.pdf                                          # Full EDA report
+│   └── forecasting_scope_concept_note.pdf                      # Forecasting scope concept note
+│
+└── README.md
 ```
+
+> **Note:** The `reports/` directory is excluded from version control. Run `scripts/eda_analysis.py` to regenerate all figures locally into `reports/figures/`.
 
 ---
 
@@ -163,10 +175,10 @@ pip install pandas numpy matplotlib seaborn
 ### Usage
 
 ```bash
-python eda_analysis.py
+python scripts/eda_analysis.py
 ```
 
-The script expects `Clinics Procurement Data.csv` to be in the same directory. It generates 10 figures saved as PDFs to a `figures/` subdirectory:
+The script resolves all paths relative to its own location — run it from anywhere in the project and it will find `data/Clinics Procurement Data.csv` and write figures to `reports/figures/` automatically. It generates 10 figures saved as PDFs to a `figures/` subdirectory:
 
 | Figure | Content |
 |---|---|

@@ -6,6 +6,7 @@ Generates all figures for the EDA report.
 
 import os
 import warnings
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -16,9 +17,11 @@ from matplotlib.gridspec import GridSpec
 
 warnings.filterwarnings("ignore")
 
-# ── Output directory ──────────────────────────────────────────────────────────
-FIGURES_DIR = "figures"
-os.makedirs(FIGURES_DIR, exist_ok=True)
+# ── Project paths (resolved relative to this file, works from any cwd) ────────
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR     = PROJECT_ROOT / "data"
+FIGURES_DIR  = PROJECT_ROOT / "reports" / "figures"
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Brand colours ─────────────────────────────────────────────────────────────
 BLUE       = "#00548E"
@@ -87,7 +90,7 @@ SHORT_CATS = {
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 print("Loading data...")
-df_raw = pd.read_csv("Clinics Procurement Data.csv", low_memory=False)
+df_raw = pd.read_csv(DATA_DIR / "Clinics Procurement Data.csv", low_memory=False)
 df_raw["date_order"] = pd.to_datetime(df_raw["date_order"], errors="coerce")
 df_raw["month"]      = pd.to_datetime(df_raw["month"], errors="coerce")
 df_raw["product_qty"]      = pd.to_numeric(df_raw["product_qty"], errors="coerce").fillna(0)
@@ -151,7 +154,7 @@ axes[1].invert_yaxis()
 fig.suptitle("Dataset Quality Assessment  (N = 43,799 rows)", fontsize=13,
              fontweight="bold", color=BLUE, y=1.01)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig1_data_quality.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig1_data_quality.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -198,7 +201,7 @@ handles = [mpatches.Patch(color=LIGHT_BLUE, label="Total Quantity"),
 ax1.legend(handles=handles, loc="upper right", fontsize=9)
 ax1.set_title("Annual In-Scope Procurement — Pilot Facilities (2020–2024)")
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig2_annual_trend.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig2_annual_trend.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -250,7 +253,7 @@ for i, v in enumerate(fac_stats["months"]):
 fig.suptitle("Pilot Facility Profile — In-Scope Health Commodities",
              fontsize=13, fontweight="bold", color=BLUE)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig3_facility_profile.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig3_facility_profile.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -294,7 +297,7 @@ for i, v in enumerate(cat_qty_sorted["qty"]):
 fig.suptitle("In-Scope Category Profile — Spend and Volume",
              fontsize=13, fontweight="bold", color=BLUE)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig4_category_profile.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig4_category_profile.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -340,7 +343,7 @@ fig.suptitle("Monthly Procurement Volume — Top 4 Health Commodity Categories (
              fontsize=12, fontweight="bold", color=BLUE)
 fig.autofmt_xdate(rotation=30)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig5_monthly_trends.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig5_monthly_trends.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -386,7 +389,7 @@ ax.set_title("Forecast Readiness — Non-Zero Procurement Months per Category ×
 ax.tick_params(axis="x", rotation=30)
 ax.tick_params(axis="y", rotation=0)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig6_readiness_heatmap.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig6_readiness_heatmap.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -434,7 +437,7 @@ for i, cat in enumerate(["Prescription Medications","Over The Counter Drugs",
 fig.suptitle("Seasonal Demand Patterns — Average Monthly Volume by Category (2021–2023)",
              fontsize=12, fontweight="bold", color=BLUE)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig7_seasonality.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig7_seasonality.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -477,7 +480,7 @@ ax.set_title("Demand Volatility — Coefficient of Variation (%) per Category ×
 ax.tick_params(axis="x", rotation=30)
 ax.tick_params(axis="y", rotation=0)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig8_volatility_heatmap.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig8_volatility_heatmap.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -520,7 +523,7 @@ ax.set_title("Top 20 Products by Volume — In-Scope Categories, Pilot Facilitie
              "(excl. Kano Independence Rd 2021 bulk event)",
              fontsize=11, fontweight="bold", color=BLUE)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig9_top_products.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig9_top_products.pdf", bbox_inches="tight")
 plt.close()
 
 
@@ -573,7 +576,7 @@ axes[1].set_title("September 2021 — Top 10 Products Driving the Spike")
 fig.suptitle("Kano Independence Rd: Bulk Stock-Load Event Analysis (September 2021)",
              fontsize=12, fontweight="bold", color=RED)
 plt.tight_layout()
-fig.savefig(f"{FIGURES_DIR}/fig10_kano_anomaly.pdf", bbox_inches="tight")
+fig.savefig(FIGURES_DIR / "fig10_kano_anomaly.pdf", bbox_inches="tight")
 plt.close()
 
 
