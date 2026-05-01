@@ -42,18 +42,24 @@ clinic-procurement/
 │   ├── Query script.sql                                        # Original Odoo procurement query
 │   └── Updated Script.sql                                      # Revised query with consumables grouping
 │
-├── scripts/                                                     # Python analysis scripts
-│   └── eda_analysis.py                                         # EDA script — generates 10 diagnostic figures
+├── scripts/                                                     # Python analysis scripts and notebooks
+│   ├── eda_analysis.py                                         # EDA script — generates 10 diagnostic figures
+│   └── tier1_tier2_forecasting.ipynb                          # Tier 1 & 2 model evaluation notebook
 │
 ├── reports/                                                     # Generated outputs (local only, not tracked)
 │   ├── figures/                                                 # EDA diagnostic figures (PDF)
 │   ├── eda_report.pdf                                          # Full EDA report
-│   └── forecasting_scope_concept_note.pdf                      # Forecasting scope concept note
+│   ├── forecasting_scope_concept_note.pdf                      # Forecasting scope concept note
+│   ├── Tiers 1 and 2 predictive modeling report.pdf           # Q2 baseline forecasting report
+│   ├── tier1_results.pdf                                       # Tier 1 MAPE chart
+│   ├── tier1_tier2_comparison.pdf                              # Five-model MAPE heatmap & win counts
+│   ├── top6_forecast_plots.pdf                                 # Forecast vs. actual — top 6 pairs
+│   └── q2_baseline_summary.pdf                                 # Q2 baseline summary chart
 │
 └── README.md
 ```
 
-> **Note:** The `reports/` directory is excluded from version control. Run `scripts/eda_analysis.py` to regenerate all figures locally into `reports/figures/`.
+> **Note:** The `reports/` directory is excluded from version control. Run `scripts/eda_analysis.py` to regenerate EDA figures, and re-run `scripts/tier1_tier2_forecasting.ipynb` to regenerate forecasting outputs.
 
 ---
 
@@ -164,6 +170,46 @@ Model selection uses **walk-forward cross-validation** on the training window. T
 
 ---
 
+## Q2 Baseline Results — Tier 1 & 2 Forecasting
+
+The `scripts/tier1_tier2_forecasting.ipynb` notebook implements and evaluates all Tier 1 and Tier 2 models across the 15 eligible category-facility pairs. Full results and interpretation are documented in **Tiers 1 and 2 predictive modeling report** (`reports/`).
+
+### Pair Readiness
+
+Of the 45 possible category-facility pairs, 13 qualified as **Tier A** (≥24 non-zero months), 2 as **Tier B** (12–23 months), and 28 as **Tier C** (<12 months, excluded from statistical modelling).
+
+### Official Q2 MAPE Baseline
+
+**No pair achieved MAPE ≤ 20% at Tier 1 or Tier 2.** All 15 eligible pairs are escalated to Tier 3 (Prophet).
+
+| Category | Facility | Best Model | Validation MAPE |
+|---|---|---|---|
+| Vaccines | Kano — Lamido | ETS | **44.8%** |
+| Medical Consumables | Kano — Lamido | SARIMA | 66.4% |
+| OTC Drugs | Asba (Abuja) | ETS | 73.0% |
+| Consumables | Kano — Lamido | ETS | 78.7% |
+| Rx Medications | Asba (Abuja) | Theta | 80.7% |
+| Vaccines | Asba (Abuja) | ETS | 82.9% |
+| Injections | Asba (Abuja) | ETS | 85.0% |
+| Med. Consumables | Asba (Abuja) | Theta | 77.9% |
+| Dental Consumables | Asba (Abuja) | SARIMA | 91.3% |
+| Rx Medications | Kano — Lamido | Theta | 100.0% |
+| OTC Drugs | Kano — Lamido | Theta | 100.0% |
+| Consumables | Asba (Abuja) | ETS/Theta | 100.0% |
+| Injections | Kano — Lamido | SARIMA | 240.0% |
+| Lab Consumables | Kano — Lamido | Theta | 6,549.0% |
+| Lab Consumables | Asba (Abuja) | — | N/A (all-zero validation) |
+
+### Key Modelling Findings
+
+- **ETS (Holt-Winters)** is the most broadly reliable Tier 2 model, achieving the best result on 8 of 15 pairs. Recommended fallback model until Prophet is deployed.
+- **SARIMA** is frequently unstable on sparse or irregular series, producing pathological MAPEs exceeding 1,000% on several pairs due to seasonal over-differencing. AIC grid-search SARIMA should not be used operationally on this dataset without constraints.
+- **Theta** is competitive on sparse, noisy series but over-projects linear trends, making it unreliable on flat or volatile demand.
+- **Lab Consumables at Asba** returned all-NaN MAPEs — the entire Jan–Jun 2024 validation window contains zero procurement records. This requires supply-chain investigation before Tier 3 modelling.
+- The **100% MAPE floor** on several pairs reflects genuine intermittent demand structure (zero-procurement months in the validation window), not model failure.
+
+---
+
 ## Running the EDA Script
 
 ### Requirements
@@ -210,10 +256,12 @@ An enhanced version of the above that adds a `category_group` field, grouping Co
 - [x] Define forecasting scope and modelling approach
 - [x] Extract and profile historical procurement data (Odoo ERP)
 - [x] Exploratory data analysis — patterns, quality, readiness
-- [ ] Construct modelling-ready dataset (monthly aggregation, zero-fill)
-- [ ] Fit and validate Tier 1–3 models on Tier A category-facility pairs
-- [ ] Compute and report Q2 MAPE baseline
-- [ ] Iterate models to achieve MAPE ≤ 20% by Q3
+- [x] Construct modelling-ready dataset (monthly aggregation, zero-fill)
+- [x] Fit and validate Tier 1 & 2 models on all eligible category-facility pairs
+- [x] Compute and report Q2 MAPE baseline (best: 44.8% — Vaccines / Kano Lamido)
+- [ ] Tier 3: Fit Facebook Prophet with holiday & seasonal regressors on all 15 pairs
+- [ ] Iterate models to achieve MAPE ≤ 20% by Q3 (priority: Vaccines, OTC, Rx Meds at anchor facilities)
+- [ ] Investigate Lab Consumables / Asba data gap (all-zero Jan–Jun 2024)
 - [ ] Build monthly monitoring pipeline for ongoing accuracy tracking
 - [ ] Phase 2: SKU-level forecasting for top therapeutic groups
 
