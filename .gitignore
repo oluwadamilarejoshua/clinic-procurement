@@ -1,0 +1,27 @@
+# Include only .csv, .sql, .py, .md, .ipynb, .tex, .pdf files — exclude everything else
+
+# Ignore all files by default
+*
+
+# Re-allow tracked extensions
+!*.csv
+!*.sql
+!*.py
+!*.md
+!*.ipynb
+!*.tex
+!*.pdf
+
+# Re-allow directories so git descends into them
+!*/
+
+# Exclude generated and local-only directories
+__pycache__/
+*.pyc
+
+# Exclude LaTeX build artifacts (keep only source + compiled PDF)
+reports/*.aux
+reports/*.log
+reports/*.out
+reports/*.toc
+reports/*.synctex.gz
