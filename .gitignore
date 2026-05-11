@@ -15,6 +15,10 @@
 # Re-allow directories so git descends into them
 !*/
 
+# Exclude entire folders from version control
+contexts/
+reports/
+
 # Exclude generated and local-only directories
 __pycache__/
 *.pyc

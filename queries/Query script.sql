@@ -43,3 +43,7 @@ JOIN product_category pc
 
 LEFT JOIN res_partner rp 
     ON rp.id = po.partner_id
+
+    
+
+    
