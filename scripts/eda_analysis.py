@@ -59,21 +59,21 @@ INSCOPE_CATS = {
 }
 
 PILOT_FACILITIES = {
-    "Abuja - Asba and Dantata",
+    "Asba & Dantata, Abuja",
     "Abuja - Lugbe",
     "Kano - Lamido Crescent",
     "Kano - Independence Road",
-    "Lagos - Sangotedo Ajah",
+    "Lagos- Sangotedo Ajah",
     "REACH Abuja Hub 1 Clinic - Kuje",
 }
 
 SHORT_NAMES = {
-    "Abuja - Asba and Dantata":          "Asba (Abuja)",
-    "Abuja - Lugbe":                     "Lugbe (Abuja)",
-    "Kano - Lamido Crescent":            "Lamido (Kano)",
-    "Kano - Independence Road":          "Indep. Rd (Kano)",
-    "Lagos - Sangotedo Ajah":            "Sangotedo (Lagos)",
-    "REACH Abuja Hub 1 Clinic - Kuje":   "REACH Kuje",
+    "Asba & Dantata, Abuja":           "Asba (Abuja)",
+    "Abuja - Lugbe":                   "Lugbe (Abuja)",
+    "Kano - Lamido Crescent":          "Lamido (Kano)",
+    "Kano - Independence Road":        "Indep. Rd (Kano)",
+    "Lagos- Sangotedo Ajah":           "Sangotedo (Lagos)",
+    "REACH Abuja Hub 1 Clinic - Kuje": "REACH Kuje",
 }
 
 SHORT_CATS = {
@@ -90,12 +90,19 @@ SHORT_CATS = {
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 print("Loading data...")
-df_raw = pd.read_csv(DATA_DIR / "Clinics Procurement Data.csv", low_memory=False)
-df_raw["date_order"] = pd.to_datetime(df_raw["date_order"], errors="coerce")
-df_raw["month"]      = pd.to_datetime(df_raw["month"], errors="coerce")
-df_raw["product_qty"]      = pd.to_numeric(df_raw["product_qty"], errors="coerce").fillna(0)
-df_raw["price_subtotal"]   = pd.to_numeric(df_raw["price_subtotal"], errors="coerce").fillna(0)
-df_raw["year"]             = pd.to_numeric(df_raw["year"], errors="coerce")
+df_raw = pd.read_csv(DATA_DIR / "Clinics Procurement Data-1778233381741.csv", low_memory=False)
+df_raw = df_raw.rename(columns={
+    "product_uom_qty":   "product_qty",
+    "product_category":  "category_name",
+    "requesting_branch": "branch_name",
+    "product":           "product_name",
+    "purchase_order":    "order_id",
+})
+df_raw["date_order"]     = pd.to_datetime(df_raw["date_order"], errors="coerce")
+df_raw["month"]          = df_raw["date_order"].dt.to_period("M").dt.to_timestamp()
+df_raw["year"]           = df_raw["date_order"].dt.year
+df_raw["product_qty"]    = pd.to_numeric(df_raw["product_qty"], errors="coerce").fillna(0)
+df_raw["price_subtotal"] = pd.to_numeric(df_raw["price_subtotal"], errors="coerce").fillna(0)
 
 # Cleaned working dataset: done orders only
 df_done = df_raw[df_raw["state"] == "done"].copy()
@@ -151,7 +158,7 @@ axes[1].set_xlabel("Percentage of total records")
 axes[1].set_title("Data Quality Issues — As % of Total")
 axes[1].invert_yaxis()
 
-fig.suptitle("Dataset Quality Assessment  (N = 43,799 rows)", fontsize=13,
+fig.suptitle("Dataset Quality Assessment  (N = 34,300 rows)", fontsize=13,
              fontweight="bold", color=BLUE, y=1.01)
 plt.tight_layout()
 fig.savefig(FIGURES_DIR / "fig1_data_quality.pdf", bbox_inches="tight")
@@ -170,7 +177,7 @@ annual = (
          order_count=("order_id", "nunique"))
     .reset_index()
 )
-annual = annual[annual["year"].between(2020, 2024)]
+annual = annual[annual["year"].between(2020, 2025)]
 
 fig, ax1 = plt.subplots(figsize=(10, 5))
 ax2 = ax1.twinx()
@@ -199,7 +206,7 @@ if not spike_idx.empty:
 handles = [mpatches.Patch(color=LIGHT_BLUE, label="Total Quantity"),
            plt.Line2D([0],[0], color=GREEN, marker="o", label="Total Spend (M NGN)")]
 ax1.legend(handles=handles, loc="upper right", fontsize=9)
-ax1.set_title("Annual In-Scope Procurement — Pilot Facilities (2020–2024)")
+ax1.set_title("Annual In-Scope Procurement — Pilot Facilities (2020–2025)")
 plt.tight_layout()
 fig.savefig(FIGURES_DIR / "fig2_annual_trend.pdf", bbox_inches="tight")
 plt.close()
@@ -369,10 +376,10 @@ pivot = readiness.pivot(index="cat_short", columns="branch_short",
 
 # Reorder columns
 col_order = [SHORT_NAMES[f] for f in [
-    "Abuja - Asba and Dantata", "Kano - Lamido Crescent",
-    "Abuja - Lugbe", "Lagos - Sangotedo Ajah",
+    "Asba & Dantata, Abuja", "Kano - Lamido Crescent",
+    "Abuja - Lugbe", "Lagos- Sangotedo Ajah",
     "Kano - Independence Road", "REACH Abuja Hub 1 Clinic - Kuje"
-] if SHORT_NAMES[f] in pivot.columns]
+] if f in SHORT_NAMES and SHORT_NAMES[f] in pivot.columns]
 pivot = pivot[[c for c in col_order if c in pivot.columns]]
 
 fig, ax = plt.subplots(figsize=(11, 5))
